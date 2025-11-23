@@ -6,18 +6,11 @@ ARG DEBIAN_FRONTEND=noninteractive
 WORKDIR /app
 
 # Install system dependencies
-# Note: For headless OpenCV, we don't need GL libraries
-# Split into multiple RUN commands for better caching and error handling
+# Note: Using opencv-python-headless, so we don't need GUI libraries
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
     libgomp1 \
     curl \
     && rm -rf /var/lib/apt/lists/*
