@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock-Paper-Scissors ML Pipeline</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🪨📄✂️ Rock-Paper-Scissors ML Pipeline</h1>
+            <p>Machine Learning Model for Gesture Classification</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-button active" onclick="showTab('predict')">Predict</button>
+            <button class="tab-button" onclick="showTab('visualize')">Visualizations</button>
+            <button class="tab-button" onclick="showTab('upload')">Upload Data</button>
+            <button class="tab-button" onclick="showTab('retrain')">Retrain Model</button>
+            <button class="tab-button" onclick="showTab('monitor')">Monitoring</button>
+        </nav>
+
+        <!-- Predict Tab -->
+        <div id="predict" class="tab-content active">
+            <h2>Image Prediction</h2>
+            <div class="predict-container">
+                <div class="upload-area">
+                    <input type="file" id="imageInput" accept="image/*" onchange="previewImage(event)">
+                    <label for="imageInput" class="upload-label">
+                        <span>📷 Click to upload or drag image here</span>
+                    </label>
+                    <div id="imagePreview" class="image-preview"></div>
+                </div>
+                <button onclick="predictImage()" class="btn btn-primary">Predict</button>
+                <div id="predictionResult" class="result-container"></div>
+            </div>
+        </div>
+
+        <!-- Visualizations Tab -->
+        <div id="visualize" class="tab-content">
+            <h2>Data Visualizations</h2>
+            <div class="visualization-container">
+                <div class="chart-container">
+                    <h3>Dataset Distribution</h3>
+                    <div id="distributionChart"></div>
+                </div>
+                <div class="chart-container">
+                    <h3>Model Performance Metrics</h3>
+                    <div id="metricsChart"></div>
+                </div>
+                <div class="chart-container">
+                    <h3>Feature Analysis: Image Size Distribution</h3>
+                    <div id="featureChart1"></div>
+                </div>
+                <div class="chart-container">
+                    <h3>Feature Analysis: Class Balance</h3>
+                    <div id="featureChart2"></div>
+                </div>
+                <div class="chart-container">
+                    <h3>Feature Analysis: Training Progress</h3>
+                    <div id="featureChart3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Tab -->
+        <div id="upload" class="tab-content">
+            <h2>Upload Training Data</h2>
+            <div class="upload-container">
+                <form id="uploadForm">
+                    <div class="form-group">
+                        <label for="labelSelect">Select Label:</label>
+                        <select id="labelSelect" required>
+                            <option value="">-- Select Label --</option>
+                            <option value="rock">Rock</option>
+                            <option value="paper">Paper</option>
+                            <option value="scissors">Scissors</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="fileInput">Select Images (Multiple files allowed):</label>
+                        <input type="file" id="fileInput" multiple accept="image/*" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload Files</button>
+                </form>
+                <div id="uploadResult" class="result-container"></div>
+            </div>
+        </div>
+
+        <!-- Retrain Tab -->
+        <div id="retrain" class="tab-content">
+            <h2>Retrain Model</h2>
+            <div class="retrain-container">
+                <p>Click the button below to retrain the model with newly uploaded data.</p>
+                <button onclick="triggerRetrain()" class="btn btn-primary" id="retrainBtn">Start Retraining</button>
+                <div id="retrainStatus" class="result-container"></div>
+                <div id="retrainProgress" class="progress-container" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <p id="progressText">Training in progress...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitor Tab -->
+        <div id="monitor" class="tab-content">
+            <h2>Model Monitoring</h2>
+            <div class="monitor-container">
+                <div class="status-cards">
+                    <div class="status-card">
+                        <h3>Model Status</h3>
+                        <div id="modelStatus" class="status-indicator">Loading...</div>
+                    </div>
+                    <div class="status-card">
+                        <h3>Uptime</h3>
+                        <div id="uptimePercentage" class="status-value">--</div>
+                    </div>
+                    <div class="status-card">
+                        <h3>Avg Response Time</h3>
+                        <div id="avgResponseTime" class="status-value">--</div>
+                    </div>
+                    <div class="status-card">
+                        <h3>Total Requests</h3>
+                        <div id="totalRequests" class="status-value">--</div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3>Response Time Over Time</h3>
+                    <div id="responseTimeChart"></div>
+                </div>
+                <div class="chart-container">
+                    <h3>Uptime History</h3>
+                    <div id="uptimeChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
+
