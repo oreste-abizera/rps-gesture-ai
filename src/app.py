@@ -22,9 +22,10 @@ import sys
 # Add src directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from preprocessing import ImagePreprocessor
-from model import RPSModel
-from prediction import Predictor
+# Defer heavy ML imports (TensorFlow, MobileNet) until we actually need them.
+# Importing `model`, `preprocessing`, and `prediction` at module import time
+# can block the process startup because TensorFlow loads native libraries.
+# We'll import them inside `load_model()` so Gunicorn can bind the port fast.
 
 # Initialize Flask app
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
@@ -76,8 +77,21 @@ class ModelUptime(Base):
     response_time = Column(Float)  # in milliseconds
 
 
-# Create tables
-Base.metadata.create_all(engine)
+# Create tables in a best-effort, race-tolerant way.
+# When running under Gunicorn with multiple worker processes there can be a
+# race where two processes both observe missing tables and attempt to create
+# them simultaneously which raises "table ... already exists" errors. To
+# make startup robust we catch that specific OperationalError and continue.
+try:
+    Base.metadata.create_all(engine)
+except Exception as e:
+    # Import here to avoid top-level dependency for the typing of the error
+    from sqlalchemy.exc import OperationalError
+    if isinstance(e, OperationalError) and 'already exists' in str(e).lower():
+        print('Database tables already exist (race condition). Continuing startup.')
+    else:
+        # Re-raise unexpected exceptions so they don't silently hide real problems
+        raise
 
 # Global variables
 model = None
@@ -93,6 +107,12 @@ def load_model():
     global model, preprocessor, predictor, model_loaded
     
     try:
+        print("Background model load: starting...")
+        # Import heavy ML modules here to avoid blocking module import
+        from preprocessing import ImagePreprocessor
+        from model import RPSModel
+        from prediction import Predictor
+
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         model_path = os.path.join(base_dir, 'models', 'rps_model.h5')
         if not os.path.exists(model_path):
@@ -128,6 +148,10 @@ def retrain_model():
     training_in_progress = True
     
     try:
+        # Import ML classes locally to avoid heavy imports at module import time
+        from preprocessing import ImagePreprocessor
+        from model import RPSModel
+
         session = Session()
         
         # Get all uploaded images that haven't been used for training
@@ -227,8 +251,13 @@ def retrain_model():
         return {"status": "error", "message": str(e)}
 
 
-# Load model on startup
-load_model()
+# If running under a WSGI server (e.g. gunicorn on Render) start model loading
+# in a background thread so the server can bind the port quickly and pass
+# platform port-scanning / health checks. When running the script directly
+# (python src/app.py) we load synchronously to preserve local dev behavior.
+if __name__ != '__main__':
+    print("Starting background thread to load ML model (non-blocking)")
+    threading.Thread(target=load_model, daemon=True).start()
 
 
 @app.route('/')
