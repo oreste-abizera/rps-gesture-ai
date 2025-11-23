@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: rps-ml-pipeline
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter  # Change to 'standard' for production (2GB RAM)
+    region: oregon  # Options: oregon, frankfurt, singapore, mumbai, sydney
+    healthCheckPath: /api/health
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHONUNBUFFERED
+        value: 1
+    # Optional: Add persistent disk for model storage
+    # disk:
+    #   name: rps-ml-pipeline-disk
+    #   mountPath: /app/models
+    #   sizeGB: 1
+
