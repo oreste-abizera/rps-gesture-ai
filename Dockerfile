@@ -7,10 +7,13 @@ WORKDIR /app
 
 # Install system dependencies
 # Note: For headless OpenCV, we don't need GL libraries
-# Removed libgl1-mesa-glx as it's not available in newer Debian versions
+# Split into multiple RUN commands for better caching and error handling
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
