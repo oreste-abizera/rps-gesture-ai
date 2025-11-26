@@ -31,7 +31,7 @@ wheels/
 # models/*.h5
 # models/*.pkl
 # models/*.tf
-# models/*.db
+models/*.db
 # models/*.json
 !models/.gitkeep
 
