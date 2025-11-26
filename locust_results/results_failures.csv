@@ -1,0 +1,3 @@
+Method,Name,Error,Occurrences
+POST,/api/predict (high load),HTTPError('500 Server Error: INTERNAL SERVER ERROR for url: /api/predict (high load)'),655
+POST,/api/predict,HTTPError('500 Server Error: INTERNAL SERVER ERROR for url: /api/predict'),167

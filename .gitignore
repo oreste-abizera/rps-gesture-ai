@@ -60,10 +60,6 @@ Thumbs.db
 *.log
 logs/
 
-# Locust
-locust_results/
-*.csv
-
 # Docker
 .dockerignore
 
