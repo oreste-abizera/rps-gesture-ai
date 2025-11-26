@@ -34,6 +34,12 @@ app.config['UPLOAD_FOLDER'] = 'data/uploaded'
 app.config['SECRET_KEY'] = 'your-secret-key-here'
 CORS(app)
 
+# Register OpenAPI / Swagger (if available)
+try:
+    from openapi import register_swagger
+    register_swagger(app)
+except Exception as e:
+    print(f"Swagger UI not available: {e}")
 # Database setup
 Base = declarative_base()
 db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'models', 'training_data.db')
