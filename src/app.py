@@ -537,6 +537,13 @@ if __name__ == '__main__':
     os.makedirs(os.path.join(base_dir, 'models'), exist_ok=True)
     
     # Use PORT environment variable if set (for Render, Heroku, etc.)
+    # For local runs, load the ML model synchronously so endpoints work
+    print("Running as __main__: loading ML model synchronously...")
+    try:
+        load_model()
+    except Exception as e:
+        print(f"Synchronous model load failed: {e}")
+
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
 
