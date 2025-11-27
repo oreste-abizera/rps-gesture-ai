@@ -426,6 +426,39 @@ def retrain_status():
 @app.route('/api/metrics', methods=['GET'])
 def get_metrics():
     """Get model metrics."""
+    # Prefer reading metrics from models/metrics.json (written by the notebook)
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    metrics_json_path = os.path.join(base_dir, 'models', 'metrics.json')
+
+    if os.path.exists(metrics_json_path):
+        try:
+            with open(metrics_json_path, 'r') as f:
+                data = json.load(f)
+
+            # If the notebook wrote a single metrics object, wrap it in a list
+            if isinstance(data, dict):
+                data = [data]
+
+            # Normalize fields to match previous API shape
+            normalized = []
+            for idx, m in enumerate(data):
+                normalized.append({
+                    "id": m.get('id', idx),
+                    "model_version": m.get('model_version'),
+                    "accuracy": m.get('accuracy'),
+                    "precision": m.get('precision'),
+                    "recall": m.get('recall'),
+                    "f1_score": m.get('f1_score'),
+                    "loss": m.get('loss'),
+                    "trained_at": m.get('timestamp') or m.get('trained_at')
+                })
+
+            return jsonify(normalized)
+        except Exception as e:
+            # Fall through to DB-based response on error
+            print(f"Error reading metrics JSON: {e}")
+
+    # Fallback to database-backed metrics
     session = Session()
     metrics = session.query(ModelMetrics).order_by(ModelMetrics.trained_at.desc()).limit(10).all()
     session.close()
@@ -490,33 +523,65 @@ def get_uptime():
 def get_stats():
     """Get dataset statistics."""
     session = Session()
-    
-    # Count uploaded images by label
+
+    # uploaded images counts (still useful)
     rock_count = session.query(UploadedImage).filter(UploadedImage.label == 'rock').count()
     paper_count = session.query(UploadedImage).filter(UploadedImage.label == 'paper').count()
     scissors_count = session.query(UploadedImage).filter(UploadedImage.label == 'scissors').count()
     total_uploaded = session.query(UploadedImage).count()
     unused_count = session.query(UploadedImage).filter(UploadedImage.used_for_training == 0).count()
-    
+
     session.close()
-    
-    # Count raw data
+
+    # Prefer reading visualization_metrics.json for raw data and size distributions
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    train_rock_dir = os.path.join(base_dir, 'data', 'raw', 'train', 'rock')
-    train_paper_dir = os.path.join(base_dir, 'data', 'raw', 'train', 'paper')
-    train_scissors_dir = os.path.join(base_dir, 'data', 'raw', 'train', 'scissors')
-    
-    train_rock = len(os.listdir(train_rock_dir)) if os.path.exists(train_rock_dir) else 0
-    train_paper = len(os.listdir(train_paper_dir)) if os.path.exists(train_paper_dir) else 0
-    train_scissors = len(os.listdir(train_scissors_dir)) if os.path.exists(train_scissors_dir) else 0
-    
+    viz_path = os.path.join(base_dir, 'models', 'visualization_metrics.json')
+
+    raw_train = {"rock": 0, "paper": 0, "scissors": 0}
+    total_raw = 0
+
+    if os.path.exists(viz_path):
+        try:
+            with open(viz_path, 'r') as f:
+                viz = json.load(f)
+
+            dataset_dist = viz.get('dataset_distribution', {})
+            train_dist = dataset_dist.get('train', {})
+
+            # Map whatever keys are present into rock/paper/scissors if possible
+            for key, cnt in train_dist.items():
+                k = key.lower()
+                if 'rock' in k:
+                    raw_train['rock'] = int(cnt)
+                elif 'paper' in k:
+                    raw_train['paper'] = int(cnt)
+                elif 'scissors' in k:
+                    raw_train['scissors'] = int(cnt)
+                else:
+                    # ignore unknown class names
+                    pass
+
+            total_raw = sum(raw_train.values())
+        except Exception as e:
+            print(f"Error reading visualization metrics: {e}")
+
+    else:
+        # Fallback: try to count files in data/raw/train
+        train_dir = os.path.join(base_dir, 'data', 'raw', 'train')
+        if os.path.exists(train_dir):
+            for class_name in ['rock', 'paper', 'scissors']:
+                class_dir = os.path.join(train_dir, class_name)
+                if os.path.exists(class_dir):
+                    raw_train[class_name] = len([f for f in os.listdir(class_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
+            total_raw = sum(raw_train.values())
+
     return jsonify({
         "raw_data": {
             "train": {
-                "rock": train_rock,
-                "paper": train_paper,
-                "scissors": train_scissors,
-                "total": train_rock + train_paper + train_scissors
+                "rock": raw_train['rock'],
+                "paper": raw_train['paper'],
+                "scissors": raw_train['scissors'],
+                "total": total_raw
             }
         },
         "uploaded_data": {

@@ -1,0 +1,53 @@
+{
+  "dataset_distribution": {
+    "train": {
+      "paper": 840,
+      "rock": 840,
+      "scissors": 840
+    },
+    "test": {
+      "paper": 124,
+      "rock": 124,
+      "scissors": 124
+    }
+  },
+  "image_size_distribution": {
+    "train": {
+      "150x150": 2520
+    },
+    "test": {
+      "150x150": 372
+    }
+  },
+  "class_balance": {
+    "train": {
+      "paper": {
+        "count": 840,
+        "percent": 33.33
+      },
+      "rock": {
+        "count": 840,
+        "percent": 33.33
+      },
+      "scissors": {
+        "count": 840,
+        "percent": 33.33
+      }
+    },
+    "test": {
+      "paper": {
+        "count": 124,
+        "percent": 33.33
+      },
+      "rock": {
+        "count": 124,
+        "percent": 33.33
+      },
+      "scissors": {
+        "count": 124,
+        "percent": 33.33
+      }
+    }
+  },
+  "timestamp": "2025-11-27T11:38:57.092161"
+}

@@ -17,12 +17,11 @@ This project implements a production-ready ML pipeline for image classification 
 
 Youtube Link: [https://youtu.be/OCWhXyKQHqE](https://youtu.be/OCWhXyKQHqE)
 
-The demo video covers:
-- Model prediction on sample images
-- Data upload functionality
-- Model retraining process
-- Monitoring dashboard
-- Load testing results
+## Demo Urls
+
+Web UI Interface: [https://rps-ml-pipeline-production.up.railway.app](https://rps-ml-pipeline-production.up.railway.app)
+
+API DOCS: [https://rps-ml-pipeline-production.up.railway.app/docs](https://rps-ml-pipeline-production.up.railway.app/docs)
 
 
 ## 📋 Features
